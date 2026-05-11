@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Snooker Tournament</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f3f3f3;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.1);
+}
+
+h1,h2{
+    text-align:center;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+th,td{
+    border:1px solid #ccc;
+    padding:10px;
+    text-align:center;
+}
+
+th{
+    background:#111;
+    color:white;
+}
+
+input{
+    width:100%;
+    border:none;
+    text-align:center;
+    font-size:16px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    background:#167a3f;
+    color:white;
+    border:none;
+    border-radius:10px;
+    margin-top:15px;
+    font-size:16px;
+}
+
+.rank{
+    font-weight:bold;
+}
+
+.live{
+    text-align:center;
+    color:green;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+@media(max-width:600px){
+    body{
+        padding:10px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎱 Live Snooker Tournament</h1>
+
+<div class="live">
+LIVE SYNC ENABLED
+</div>
+
+<h2>Group Table</h2>
+
+<table>
+<thead>
+<tr>
+<th>Pos</th>
+<th>Player</th>
+<th>Scored</th>
+<th>Conceded</th>
+<th>Difference</th>
+<th>Wins</th>
+</tr>
+</thead>
+
+<tbody id="tableBody">
+
+<tr>
+<td class="rank">1</td>
+<td>Afwan</td>
+<td><input type="number" class="scored" value="0"></td>
+<td><input type="number" class="conceded" value="0"></td>
+<td class="difference">0</td>
+<td><input type="number" class="wins" value="0"></td>
+</tr>
+
+<tr>
+<td class="rank">2</td>
+<td>Rhuel</td>
+<td><input type="number" class="scored" value="0"></td>
+<td><input type="number" class="conceded" value="0"></td>
+<td class="difference">0</td>
+<td><input type="number" class="wins" value="0"></td>
+</tr>
+
+<tr>
+<td class="rank">3</td>
+<td>Shahel</td>
+<td><input type="number" class="scored" value="0"></td>
+<td><input type="number" class="conceded" value="0"></td>
+<td class="difference">0</td>
+<td><input type="number" class="wins" value="0"></td>
+</tr>
+
+<tr>
+<td class="rank">4</td>
+<td>TK</td>
+<td><input type="number" class="scored" value="0"></td>
+<td><input type="number" class="conceded" value="0"></td>
+<td class="difference">0</td>
+<td><input type="number" class="wins" value="0"></td>
+</tr>
+
+</tbody>
+</table>
+
+<button onclick="updateRankings()">Update Live Rankings</button>
+
+<h2>Knockout</h2>
+<p><strong>KO1:</strong> 1st vs 3rd</p>
+<p><strong>KO2:</strong> 2nd vs 4th</p>
+
+<h2>Final</h2>
+<p>Winner KO1 vs Winner KO2</p>
+
+<h2>Prizes</h2>
+<p>🥇 Winner: £25</p>
+<p>🥈 Runner-up: £10</p>
+<p>🥉 3rd & 4th: Red Bull</p>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
+import {
+  getDatabase,
+  ref,
+  set,
+  onValue
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBVTtrIgnr1oYsLz7fpZzHhjlfDSK09WqI",
+  authDomain: "cs-doinks-tournament.firebaseapp.com",
+  databaseURL: "https://cs-doinks-tournament-default-rtdb.firebaseio.com",
+  projectId: "cs-doinks-tournament",
+  storageBucket: "cs-doinks-tournament.firebasestorage.app",
+  messagingSenderId: "856961261990",
+  appId: "1:856961261990:web:50cca53d167c7649472f67",
+  measurementId: "G-C0L3Q2HLH2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.updateRankings = function(){
+
+    const rows = Array.from(document.querySelectorAll("#tableBody tr"));
+
+    let players = rows.map(row => {
+
+        const scored = parseInt(row.querySelector(".scored").value) || 0;
+        const conceded = parseInt(row.querySelector(".conceded").value) || 0;
+        const wins = parseInt(row.querySelector(".wins").value) || 0;
+
+        const diff = scored - conceded;
+
+        row.querySelector(".difference").innerText = diff;
+
+        return {
+            html: row.innerHTML,
+            wins,
+            diff
+        };
+    });
+
+    players.sort((a,b)=>{
+
+        if(b.wins !== a.wins){
+            return b.wins - a.wins;
+        }
+
+        return b.diff - a.diff;
+    });
+
+    const tableBody = document.getElementById("tableBody");
+    tableBody.innerHTML = "";
+
+    players.forEach((player,index)=>{
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = player.html;
+
+        tr.querySelector(".rank").innerText = index + 1;
+
+        tableBody.appendChild(tr);
+    });
+
+    saveLiveData();
+}
+
+function saveLiveData(){
+
+    const data = document.body.innerHTML;
+
+    set(ref(db, "snookerTournament"), {
+        html:data
+    });
+}
+
+onValue(ref(db, "snookerTournament"), (snapshot)=>{
+
+    const data = snapshot.val();
+
+    if(data && data.html){
+
+        const current = document.body.innerHTML;
+
+        if(current !== data.html){
+            document.body.innerHTML = data.html;
+        }
+    }
+});
+
+document.addEventListener("input", ()=>{
+
+    updateRankings();
+});
+
+</script>
+
+</body>
+</html>
