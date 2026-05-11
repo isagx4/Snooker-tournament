@@ -1,41 +1,59 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+/>
+
 <title>Live Snooker Tournament</title>
 
 <style>
+
 body{
     font-family: Arial, sans-serif;
     background:#f3f3f3;
     margin:0;
-    padding:20px;
+    padding:10px;
 }
 
 .container{
-    max-width:900px;
+    max-width:1000px;
     margin:auto;
     background:white;
-    padding:20px;
+    padding:15px;
     border-radius:12px;
     box-shadow:0 2px 12px rgba(0,0,0,0.1);
+    overflow:hidden;
 }
 
 h1,h2{
     text-align:center;
 }
 
+.live{
+    text-align:center;
+    color:green;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.table-wrapper{
+    overflow-x:auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 table{
     width:100%;
     border-collapse:collapse;
     margin-top:15px;
+    min-width:650px;
 }
 
 th,td{
     border:1px solid #ccc;
-    padding:10px;
+    padding:8px;
     text-align:center;
 }
 
@@ -46,9 +64,13 @@ th{
 
 input{
     width:100%;
-    border:none;
+    min-width:50px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    padding:8px;
     text-align:center;
     font-size:16px;
+    box-sizing:border-box;
 }
 
 button{
@@ -60,24 +82,42 @@ button{
     border-radius:10px;
     margin-top:15px;
     font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:0.9;
 }
 
 .rank{
     font-weight:bold;
 }
 
-.live{
-    text-align:center;
-    color:green;
-    font-weight:bold;
-    margin-bottom:15px;
-}
-
 @media(max-width:600px){
+
     body{
+        padding:6px;
+    }
+
+    .container{
         padding:10px;
     }
+
+    table{
+        min-width:600px;
+    }
+
+    th,td{
+        padding:6px;
+        font-size:14px;
+    }
+
+    input{
+        font-size:16px;
+        padding:6px;
+    }
 }
+
 </style>
 </head>
 
@@ -85,130 +125,184 @@ button{
 
 <div class="container">
 
-<h1>🎱 Live Snooker Tournament</h1>
+    <h1>🎱 Live Snooker Tournament</h1>
 
-<div class="live">
-LIVE SYNC ENABLED
-</div>
+    <div class="live">
+        LIVE SYNC ENABLED
+    </div>
 
-<h2>Group Table</h2>
+    <h2>Group Table</h2>
 
-<table>
-<thead>
-<tr>
-<th>Pos</th>
-<th>Player</th>
-<th>Scored</th>
-<th>Conceded</th>
-<th>Difference</th>
-<th>Wins</th>
-</tr>
-</thead>
+    <div class="table-wrapper">
 
-<tbody id="tableBody">
+        <table>
 
-<tr>
-<td class="rank">1</td>
-<td>Afwan</td>
-<td><input type="number" class="scored" value="0"></td>
-<td><input type="number" class="conceded" value="0"></td>
-<td class="difference">0</td>
-<td><input type="number" class="wins" value="0"></td>
-</tr>
+            <thead>
+                <tr>
+                    <th>Pos</th>
+                    <th>Player</th>
+                    <th>Scored</th>
+                    <th>Conceded</th>
+                    <th>Difference</th>
+                    <th>Wins</th>
+                </tr>
+            </thead>
 
-<tr>
-<td class="rank">2</td>
-<td>Rhuel</td>
-<td><input type="number" class="scored" value="0"></td>
-<td><input type="number" class="conceded" value="0"></td>
-<td class="difference">0</td>
-<td><input type="number" class="wins" value="0"></td>
-</tr>
+            <tbody id="tableBody">
+            </tbody>
 
-<tr>
-<td class="rank">3</td>
-<td>Shahel</td>
-<td><input type="number" class="scored" value="0"></td>
-<td><input type="number" class="conceded" value="0"></td>
-<td class="difference">0</td>
-<td><input type="number" class="wins" value="0"></td>
-</tr>
+        </table>
 
-<tr>
-<td class="rank">4</td>
-<td>TK</td>
-<td><input type="number" class="scored" value="0"></td>
-<td><input type="number" class="conceded" value="0"></td>
-<td class="difference">0</td>
-<td><input type="number" class="wins" value="0"></td>
-</tr>
+    </div>
 
-</tbody>
-</table>
+    <button onclick="updateRankings()">
+        Update Live Rankings
+    </button>
 
-<button onclick="updateRankings()">Update Live Rankings</button>
+    <h2>Knockout</h2>
 
-<h2>Knockout</h2>
-<p><strong>KO1:</strong> 1st vs 3rd</p>
-<p><strong>KO2:</strong> 2nd vs 4th</p>
+    <p><strong>KO1:</strong> 1st vs 3rd</p>
+    <p><strong>KO2:</strong> 2nd vs 4th</p>
 
-<h2>Final</h2>
-<p>Winner KO1 vs Winner KO2</p>
+    <h2>Final</h2>
 
-<h2>Prizes</h2>
-<p>🥇 Winner: £25</p>
-<p>🥈 Runner-up: £10</p>
-<p>🥉 3rd & 4th: Red Bull</p>
+    <p>Winner KO1 vs Winner KO2</p>
+
+    <h2>Prizes</h2>
+
+    <p>🥇 Winner: £25</p>
+    <p>🥈 Runner-up: £10</p>
+    <p>🥉 3rd & 4th: Red Bull</p>
 
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
 import {
-  getDatabase,
-  ref,
-  set,
-  onValue
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+    getDatabase,
+    ref,
+    set,
+    onValue
+}
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBVTtrIgnr1oYsLz7fpZzHhjlfDSK09WqI",
-  authDomain: "cs-doinks-tournament.firebaseapp.com",
-  databaseURL: "https://cs-doinks-tournament-default-rtdb.firebaseio.com",
-  projectId: "cs-doinks-tournament",
-  storageBucket: "cs-doinks-tournament.firebasestorage.app",
-  messagingSenderId: "856961261990",
-  appId: "1:856961261990:web:50cca53d167c7649472f67",
-  measurementId: "G-C0L3Q2HLH2"
+
+    apiKey: "AIzaSyBVTtrIgnr1oYsLz7fpZzHhjlfDSK09WqI",
+
+    authDomain:
+        "cs-doinks-tournament.firebaseapp.com",
+
+    databaseURL:
+        "https://cs-doinks-tournament-default-rtdb.firebaseio.com",
+
+    projectId:
+        "cs-doinks-tournament",
+
+    storageBucket:
+        "cs-doinks-tournament.firebasestorage.app",
+
+    messagingSenderId:
+        "856961261990",
+
+    appId:
+        "1:856961261990:web:50cca53d167c7649472f67",
+
+    measurementId:
+        "G-C0L3Q2HLH2"
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getDatabase(app);
 
-window.updateRankings = function(){
+const tableBody =
+    document.getElementById("tableBody");
 
-    const rows = Array.from(document.querySelectorAll("#tableBody tr"));
+const defaultPlayers = [
 
-    let players = rows.map(row => {
+    {
+        name: "Afwan",
+        scored: 0,
+        conceded: 0,
+        wins: 0
+    },
 
-        const scored = parseInt(row.querySelector(".scored").value) || 0;
-        const conceded = parseInt(row.querySelector(".conceded").value) || 0;
-        const wins = parseInt(row.querySelector(".wins").value) || 0;
+    {
+        name: "Rhuel",
+        scored: 0,
+        conceded: 0,
+        wins: 0
+    },
 
-        const diff = scored - conceded;
+    {
+        name: "Shahel",
+        scored: 0,
+        conceded: 0,
+        wins: 0
+    },
 
-        row.querySelector(".difference").innerText = diff;
+    {
+        name: "TK",
+        scored: 0,
+        conceded: 0,
+        wins: 0
+    }
+];
+
+function calculateDifference(player){
+
+    return player.scored - player.conceded;
+}
+
+function getPlayers(){
+
+    const rows =
+        Array.from(
+            tableBody.querySelectorAll("tr")
+        );
+
+    return rows.map((row) => {
+
+        const name =
+            row.querySelector(".player-name").value;
+
+        const scored =
+            parseInt(
+                row.querySelector(".scored").value
+            ) || 0;
+
+        const conceded =
+            parseInt(
+                row.querySelector(".conceded").value
+            ) || 0;
+
+        const wins =
+            parseInt(
+                row.querySelector(".wins").value
+            ) || 0;
 
         return {
-            html: row.innerHTML,
-            wins,
-            diff
+            name,
+            scored,
+            conceded,
+            wins
         };
     });
+}
 
-    players.sort((a,b)=>{
+function renderPlayers(players){
+
+    players.forEach(player => {
+
+        player.diff =
+            calculateDifference(player);
+    });
+
+    players.sort((a,b) => {
 
         if(b.wins !== a.wins){
             return b.wins - a.wins;
@@ -217,48 +311,118 @@ window.updateRankings = function(){
         return b.diff - a.diff;
     });
 
-    const tableBody = document.getElementById("tableBody");
     tableBody.innerHTML = "";
 
-    players.forEach((player,index)=>{
+    players.forEach((player,index) => {
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = player.html;
+        const tr =
+            document.createElement("tr");
 
-        tr.querySelector(".rank").innerText = index + 1;
+        tr.innerHTML = `
+
+            <td class="rank">
+                ${index + 1}
+            </td>
+
+            <td>
+                <input
+                    type="text"
+                    class="player-name"
+                    value="${player.name}"
+                >
+            </td>
+
+            <td>
+                <input
+                    type="number"
+                    class="scored"
+                    value="${player.scored}"
+                    inputmode="numeric"
+                >
+            </td>
+
+            <td>
+                <input
+                    type="number"
+                    class="conceded"
+                    value="${player.conceded}"
+                    inputmode="numeric"
+                >
+            </td>
+
+            <td class="difference">
+                ${player.diff}
+            </td>
+
+            <td>
+                <input
+                    type="number"
+                    class="wins"
+                    value="${player.wins}"
+                    inputmode="numeric"
+                >
+            </td>
+
+        `;
 
         tableBody.appendChild(tr);
     });
-
-    saveLiveData();
 }
 
-function saveLiveData(){
+async function saveLiveData(){
 
-    const data = document.body.innerHTML;
+    const players = getPlayers();
 
-    set(ref(db, "snookerTournament"), {
-        html:data
-    });
+    await set(
+        ref(db, "snookerTournament"),
+        { players }
+    );
 }
 
-onValue(ref(db, "snookerTournament"), (snapshot)=>{
+window.updateRankings =
+async function(){
 
-    const data = snapshot.val();
+    const players = getPlayers();
 
-    if(data && data.html){
+    renderPlayers(players);
 
-        const current = document.body.innerHTML;
+    await saveLiveData();
+};
 
-        if(current !== data.html){
-            document.body.innerHTML = data.html;
+let firstLoad = true;
+
+onValue(
+    ref(db, "snookerTournament"),
+    (snapshot) => {
+
+        const data = snapshot.val();
+
+        if(data && data.players){
+
+            renderPlayers(data.players);
+
+        } else if(firstLoad){
+
+            renderPlayers(defaultPlayers);
+
+            saveLiveData();
         }
+
+        firstLoad = false;
     }
-});
+);
 
-document.addEventListener("input", ()=>{
+let debounceTimer;
 
-    updateRankings();
+document.addEventListener("input", () => {
+
+    clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(() => {
+
+        updateRankings();
+
+    }, 300);
 });
 
 </script>
