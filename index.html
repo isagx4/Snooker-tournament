@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Snooker Tournament Engine</title>
+<title>Snooker Tournament</title>
 
 <style>
 body{
@@ -48,6 +48,13 @@ button{
     margin-top:10px;
 }
 
+.small-btn{
+    width:auto;
+    padding:6px 10px;
+    font-size:12px;
+    background:#b00020;
+}
+
 table{
     width:100%;
     border-collapse:collapse;
@@ -62,12 +69,10 @@ th,td{
 
 th{background:#111;color:#fff}
 
-.winner{
-    font-size:18px;
-    text-align:center;
-    font-weight:bold;
+.footer{
+    margin-top:30px;
+    font-size:14px;
 }
-
 </style>
 </head>
 
@@ -75,7 +80,7 @@ th{background:#111;color:#fff}
 
 <div class="container">
 
-<h1>🎱 Tournament Engine</h1>
+<h1>🎱 Tournament System</h1>
 
 <!-- MATCH INPUT -->
 <div class="section">
@@ -84,40 +89,43 @@ th{background:#111;color:#fff}
 <select id="p1"></select>
 <select id="p2"></select>
 
-<input id="s1" type="number" placeholder="Player 1 Score">
-<input id="s2" type="number" placeholder="Player 2 Score">
+<input id="s1" type="number" placeholder="Score P1">
+<input id="s2" type="number" placeholder="Score P2">
 
 <button onclick="addMatch()">Add Match</button>
 </div>
 
-<!-- GROUP TABLE -->
+<!-- TABLE -->
 <div class="section">
 <h2>📊 Group Table</h2>
 
 <table>
 <thead>
 <tr>
-<th>Pos</th>
+<th>#</th>
 <th>Player</th>
-<th>Scored</th>
-<th>Conceded</th>
-<th>Diff</th>
+<th>G</th>
+<th>F</th>
+<th>A</th>
+<th>SD</th>
+<th>P</th>
 </tr>
 </thead>
 <tbody id="table"></tbody>
 </table>
 </div>
 
-<!-- KO -->
+<!-- HISTORY -->
 <div class="section">
-<h2>🏆 Knockout</h2>
-
-<div id="ko"></div>
+<h2>📜 Match History</h2>
+<div id="history"></div>
 </div>
 
-<div class="section">
-<h2>🥇 Winner</h2>
-<div class="winner" id="winner">No winner yet</div>
+<!-- RESET -->
+<div class="section footer">
+<button class="small-btn" onclick="resetAll()">
+Reset Tournament
+</button>
 </div>
 
 </div>
@@ -144,17 +152,92 @@ const db = getDatabase(app);
 
 let state = {
     players:[
-        {name:"Afwan",s:0,c:0},
-        {name:"Rhuel",s:0,c:0},
-        {name:"Shahel",s:0,c:0},
-        {name:"TK",s:0,c:0}
+        {name:"AZ"},
+        {name:"Rolo"},
+        {name:"DB"},
+        {name:"TK"}
     ],
     matches:[]
 };
 
 const table=document.getElementById("table");
+const history=document.getElementById("history");
+
 const p1=document.getElementById("p1");
 const p2=document.getElementById("p2");
+
+function initPlayers(){
+    state.players.forEach(p=>{
+        p.G=0;
+        p.F=0;
+        p.A=0;
+        p.P=0;
+    });
+}
+
+function recalc(){
+
+    initPlayers();
+
+    state.matches.forEach(m=>{
+
+        let A=state.players.find(p=>p.name===m.a);
+        let B=state.players.find(p=>p.name===m.b);
+
+        A.G++; B.G++;
+
+        A.F+=m.sa;
+        A.A+=m.sb;
+
+        B.F+=m.sb;
+        B.A+=m.sa;
+
+        if(m.sa>m.sb) A.P++;
+        else if(m.sb>m.sa) B.P++;
+    });
+
+    state.players.sort((a,b)=>
+        (b.P - a.P) ||
+        ((b.F-b.A)-(a.F-a.A))
+    );
+
+    render();
+    renderHistory();
+}
+
+function render(){
+
+    table.innerHTML="";
+
+    state.players.forEach((p,i)=>{
+
+        let sd = (p.F - p.A);
+
+        table.innerHTML+=`
+        <tr>
+        <td>${i+1}</td>
+        <td>${p.name}</td>
+        <td>${p.G}</td>
+        <td>${p.F}</td>
+        <td>${p.A}</td>
+        <td>${sd}</td>
+        <td>${p.P}</td>
+        </tr>`;
+    });
+}
+
+function renderHistory(){
+
+    history.innerHTML="";
+
+    state.matches.forEach(m=>{
+
+        history.innerHTML+=`
+        <p>
+        ${m.a} ${m.sa} - ${m.sb} ${m.b}
+        </p>`;
+    });
+}
 
 function updateDropdowns(){
 
@@ -164,48 +247,6 @@ function updateDropdowns(){
     state.players.forEach(p=>{
         p1.innerHTML+=`<option>${p.name}</option>`;
         p2.innerHTML+=`<option>${p.name}</option>`;
-    });
-}
-
-function recalc(){
-
-    state.players.forEach(p=>{
-        p.s=0;
-        p.c=0;
-    });
-
-    state.matches.forEach(m=>{
-
-        let A=state.players.find(p=>p.name==m.a);
-        let B=state.players.find(p=>p.name==m.b);
-
-        A.s+=m.sa;
-        A.c+=m.sb;
-
-        B.s+=m.sb;
-        B.c+=m.sa;
-    });
-
-    state.players.sort((a,b)=>(b.s-b.c)-(a.s-a.c));
-
-    renderTable();
-    renderKO();
-}
-
-function renderTable(){
-
-    table.innerHTML="";
-
-    state.players.forEach((p,i)=>{
-
-        table.innerHTML+=`
-        <tr>
-        <td>${i+1}</td>
-        <td>${p.name}</td>
-        <td>${p.s}</td>
-        <td>${p.c}</td>
-        <td>${p.s-p.c}</td>
-        </tr>`;
     });
 }
 
@@ -224,22 +265,6 @@ window.addMatch=function(){
     save();
 }
 
-function renderKO(){
-
-    if(state.players.length<4) return;
-
-    let top=[...state.players]
-        .sort((a,b)=>(b.s-b.c)-(a.s-a.c));
-
-    let ko=[
-        `${top[0].name} vs ${top[3].name}`,
-        `${top[1].name} vs ${top[2].name}`
-    ];
-
-    document.getElementById("ko").innerHTML=
-        ko.map(k=>`<p>${k}</p>`).join("");
-}
-
 function save(){
     set(ref(db,"tournament"),state);
 }
@@ -254,7 +279,25 @@ onValue(ref(db,"tournament"),snap=>{
     recalc();
 });
 
+window.resetAll=function(){
+
+    if(!confirm("Are you sure you want to reset everything?")) return;
+
+    state.matches=[];
+
+    state.players=[
+        {name:"AZ"},
+        {name:"Rolo"},
+        {name:"DB"},
+        {name:"TK"}
+    ];
+
+    save();
+    recalc();
+}
+
 updateDropdowns();
+recalc();
 
 </script>
 
