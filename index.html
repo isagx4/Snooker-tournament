@@ -2,15 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0"
-/>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Live Snooker Tournament</title>
 
 <style>
-
 body{
     font-family: Arial, sans-serif;
     background:#f3f3f3;
@@ -25,7 +20,6 @@ body{
     padding:15px;
     border-radius:12px;
     box-shadow:0 2px 12px rgba(0,0,0,0.1);
-    overflow:hidden;
 }
 
 h1,h2{
@@ -36,19 +30,18 @@ h1,h2{
     text-align:center;
     color:green;
     font-weight:bold;
-    margin-bottom:15px;
+    margin-bottom:10px;
 }
 
 .table-wrapper{
     overflow-x:auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 table{
     width:100%;
     border-collapse:collapse;
-    margin-top:15px;
     min-width:650px;
+    margin-top:10px;
 }
 
 th,td{
@@ -64,13 +57,11 @@ th{
 
 input{
     width:100%;
-    min-width:50px;
     border:1px solid #ccc;
     border-radius:6px;
     padding:8px;
     text-align:center;
     font-size:16px;
-    box-sizing:border-box;
 }
 
 button{
@@ -89,35 +80,23 @@ button:hover{
     opacity:0.9;
 }
 
-.rank{
+.section{
+    margin-top:25px;
+    padding-top:10px;
+    border-top:1px solid #ddd;
+}
+
+.winner-box{
+    text-align:center;
+    font-size:18px;
     font-weight:bold;
+    margin-top:10px;
 }
 
 @media(max-width:600px){
-
-    body{
-        padding:6px;
-    }
-
-    .container{
-        padding:10px;
-    }
-
-    table{
-        min-width:600px;
-    }
-
-    th,td{
-        padding:6px;
-        font-size:14px;
-    }
-
-    input{
-        font-size:16px;
-        padding:6px;
-    }
+    body{padding:6px;}
+    table{min-width:600px;}
 }
-
 </style>
 </head>
 
@@ -125,305 +104,190 @@ button:hover{
 
 <div class="container">
 
-    <h1>🎱 Live Snooker Tournament</h1>
+<h1>🎱 Live Snooker Tournament</h1>
 
-    <div class="live">
-        LIVE SYNC ENABLED
-    </div>
+<div class="live">LIVE SYNC ENABLED</div>
 
-    <h2>Group Table</h2>
+<h2>Group Table</h2>
 
-    <div class="table-wrapper">
+<div class="table-wrapper">
+<table>
+<thead>
+<tr>
+<th>Pos</th>
+<th>Player</th>
+<th>Scored</th>
+<th>Conceded</th>
+<th>Diff</th>
+<th>Wins</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
 
-        <table>
+<button onclick="updateAll()">
+Save & Update Rankings
+</button>
 
-            <thead>
-                <tr>
-                    <th>Pos</th>
-                    <th>Player</th>
-                    <th>Scored</th>
-                    <th>Conceded</th>
-                    <th>Difference</th>
-                    <th>Wins</th>
-                </tr>
-            </thead>
+<!-- KO SECTION -->
+<div class="section">
+<h2>Knockout Stage</h2>
 
-            <tbody id="tableBody">
-            </tbody>
+<p>KO1: 1st vs 3rd</p>
 
-        </table>
+<input id="ko1p1Score" placeholder="Player 1 Score">
+<input id="ko1p2Score" placeholder="Player 2 Score">
 
-    </div>
+<br><br>
 
-    <button onclick="updateRankings()">
-        Update Live Rankings
-    </button>
+<p>KO2: 2nd vs 4th</p>
 
-    <h2>Knockout</h2>
+<input id="ko2p1Score" placeholder="Player 1 Score">
+<input id="ko2p2Score" placeholder="Player 2 Score">
+</div>
 
-    <p><strong>KO1:</strong> 1st vs 3rd</p>
-    <p><strong>KO2:</strong> 2nd vs 4th</p>
+<!-- FINAL -->
+<div class="section">
+<h2>Final</h2>
 
-    <h2>Final</h2>
+<input id="final1" placeholder="Winner KO1 Score">
+<input id="final2" placeholder="Winner KO2 Score">
+</div>
 
-    <p>Winner KO1 vs Winner KO2</p>
+<!-- WINNER -->
+<div class="section">
+<h2>🏆 Tournament Winner</h2>
+<div class="winner-box" id="winnerBox">
+No winner declared yet
+</div>
 
-    <h2>Prizes</h2>
-
-    <p>🥇 Winner: £25</p>
-    <p>🥈 Runner-up: £10</p>
-    <p>🥉 3rd & 4th: Red Bull</p>
+<button onclick="calculateWinner()">
+Declare Winner
+</button>
+</div>
 
 </div>
 
 <script type="module">
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import {
-    getDatabase,
-    ref,
-    set,
-    onValue
-}
-from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+  getDatabase,
+  ref,
+  set,
+  onValue
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
 const firebaseConfig = {
-
-    apiKey: "AIzaSyBVTtrIgnr1oYsLz7fpZzHhjlfDSK09WqI",
-
-    authDomain:
-        "cs-doinks-tournament.firebaseapp.com",
-
-    databaseURL:
-        "https://cs-doinks-tournament-default-rtdb.firebaseio.com",
-
-    projectId:
-        "cs-doinks-tournament",
-
-    storageBucket:
-        "cs-doinks-tournament.firebasestorage.app",
-
-    messagingSenderId:
-        "856961261990",
-
-    appId:
-        "1:856961261990:web:50cca53d167c7649472f67",
-
-    measurementId:
-        "G-C0L3Q2HLH2"
+  apiKey: "YOUR_KEY",
+  authDomain: "cs-doinks-tournament.firebaseapp.com",
+  databaseURL: "https://cs-doinks-tournament-default-rtdb.firebaseio.com",
+  projectId: "cs-doinks-tournament",
+  storageBucket: "cs-doinks-tournament.firebasestorage.app",
+  messagingSenderId: "856961261990",
+  appId: "1:856961261990:web:50cca53d167c7649472f67"
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getDatabase(app);
 
-const tableBody =
-    document.getElementById("tableBody");
+const tableBody = document.getElementById("tableBody");
 
 const defaultPlayers = [
-
-    {
-        name: "Afwan",
-        scored: 0,
-        conceded: 0,
-        wins: 0
-    },
-
-    {
-        name: "Rhuel",
-        scored: 0,
-        conceded: 0,
-        wins: 0
-    },
-
-    {
-        name: "Shahel",
-        scored: 0,
-        conceded: 0,
-        wins: 0
-    },
-
-    {
-        name: "TK",
-        scored: 0,
-        conceded: 0,
-        wins: 0
-    }
+  { name:"Afwan", scored:0, conceded:0, wins:0 },
+  { name:"Rhuel", scored:0, conceded:0, wins:0 },
+  { name:"Shahel", scored:0, conceded:0, wins:0 },
+  { name:"TK", scored:0, conceded:0, wins:0 }
 ];
 
-function calculateDifference(player){
+function diff(p){ return p.scored - p.conceded; }
 
-    return player.scored - player.conceded;
+function render(players){
+
+  tableBody.innerHTML = "";
+
+  players.forEach((p,i)=>{
+
+    const d = diff(p);
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${i+1}</td>
+
+      <td>
+        <input class="name" value="${p.name}">
+      </td>
+
+      <td>
+        <input type="number" class="scored" value="${p.scored}">
+      </td>
+
+      <td>
+        <input type="number" class="conceded" value="${p.conceded}">
+      </td>
+
+      <td>${d}</td>
+
+      <td>
+        <input type="number" class="wins" value="${p.wins}">
+      </td>
+    `;
+
+    tableBody.appendChild(tr);
+  });
 }
 
 function getPlayers(){
 
-    const rows =
-        Array.from(
-            tableBody.querySelectorAll("tr")
-        );
-
-    return rows.map((row) => {
-
-        const name =
-            row.querySelector(".player-name").value;
-
-        const scored =
-            parseInt(
-                row.querySelector(".scored").value
-            ) || 0;
-
-        const conceded =
-            parseInt(
-                row.querySelector(".conceded").value
-            ) || 0;
-
-        const wins =
-            parseInt(
-                row.querySelector(".wins").value
-            ) || 0;
-
-        return {
-            name,
-            scored,
-            conceded,
-            wins
-        };
-    });
+  return Array.from(tableBody.querySelectorAll("tr")).map(r=>({
+    name: r.querySelector(".name").value,
+    scored: +r.querySelector(".scored").value || 0,
+    conceded: +r.querySelector(".conceded").value || 0,
+    wins: +r.querySelector(".wins").value || 0
+  }));
 }
 
-function renderPlayers(players){
+window.updateAll = async function(){
 
-    players.forEach(player => {
+  let players = getPlayers();
 
-        player.diff =
-            calculateDifference(player);
-    });
+  players.sort((a,b)=> b.wins - a.wins || diff(b) - diff(a));
 
-    players.sort((a,b) => {
+  render(players);
 
-        if(b.wins !== a.wins){
-            return b.wins - a.wins;
-        }
-
-        return b.diff - a.diff;
-    });
-
-    tableBody.innerHTML = "";
-
-    players.forEach((player,index) => {
-
-        const tr =
-            document.createElement("tr");
-
-        tr.innerHTML = `
-
-            <td class="rank">
-                ${index + 1}
-            </td>
-
-            <td>
-                <input
-                    type="text"
-                    class="player-name"
-                    value="${player.name}"
-                >
-            </td>
-
-            <td>
-                <input
-                    type="number"
-                    class="scored"
-                    value="${player.scored}"
-                    inputmode="numeric"
-                >
-            </td>
-
-            <td>
-                <input
-                    type="number"
-                    class="conceded"
-                    value="${player.conceded}"
-                    inputmode="numeric"
-                >
-            </td>
-
-            <td class="difference">
-                ${player.diff}
-            </td>
-
-            <td>
-                <input
-                    type="number"
-                    class="wins"
-                    value="${player.wins}"
-                    inputmode="numeric"
-                >
-            </td>
-
-        `;
-
-        tableBody.appendChild(tr);
-    });
-}
-
-async function saveLiveData(){
-
-    const players = getPlayers();
-
-    await set(
-        ref(db, "snookerTournament"),
-        { players }
-    );
-}
-
-window.updateRankings =
-async function(){
-
-    const players = getPlayers();
-
-    renderPlayers(players);
-
-    await saveLiveData();
+  await set(ref(db,"snookerTournament"),{ players });
 };
 
-let firstLoad = true;
+onValue(ref(db,"snookerTournament"),snap=>{
 
-onValue(
-    ref(db, "snookerTournament"),
-    (snapshot) => {
+  const data = snap.val();
 
-        const data = snapshot.val();
+  if(data?.players) render(data.players);
+  else render(defaultPlayers);
 
-        if(data && data.players){
-
-            renderPlayers(data.players);
-
-        } else if(firstLoad){
-
-            renderPlayers(defaultPlayers);
-
-            saveLiveData();
-        }
-
-        firstLoad = false;
-    }
-);
-
-let debounceTimer;
-
-document.addEventListener("input", () => {
-
-    clearTimeout(debounceTimer);
-
-    debounceTimer = setTimeout(() => {
-
-        updateRankings();
-
-    }, 300);
 });
+
+window.calculateWinner = function(){
+
+  let ko1 = +document.getElementById("ko1p1Score").value || 0;
+  let ko2 = +document.getElementById("ko1p2Score").value || 0;
+
+  let ko3 = +document.getElementById("ko2p1Score").value || 0;
+  let ko4 = +document.getElementById("ko2p2Score").value || 0;
+
+  let winnerKO1 = ko1 > ko2 ? "KO1 Player 1" : "KO1 Player 2";
+  let winnerKO2 = ko3 > ko4 ? "KO2 Player 1" : "KO2 Player 2";
+
+  let final1 = +document.getElementById("final1").value || 0;
+  let final2 = +document.getElementById("final2").value || 0;
+
+  let winner = final1 > final2 ? winnerKO1 : winnerKO2;
+
+  document.getElementById("winnerBox").innerText =
+    "🏆 Winner: " + winner;
+};
 
 </script>
 
