@@ -48,13 +48,6 @@ button{
     margin-top:10px;
 }
 
-.small-btn{
-    width:auto;
-    padding:6px 10px;
-    font-size:12px;
-    background:#b00020;
-}
-
 table{
     width:100%;
     border-collapse:collapse;
@@ -69,10 +62,6 @@ th,td{
 
 th{background:#111;color:#fff}
 
-.footer{
-    margin-top:30px;
-    font-size:14px;
-}
 </style>
 </head>
 
@@ -115,19 +104,10 @@ th{background:#111;color:#fff}
 </table>
 </div>
 
-<!-- HISTORY -->
+<!-- KO -->
 <div class="section">
-<h2>📜 Match History</h2>
-<div id="history"></div>
-</div>
-
-<!-- RESET -->
-<div class="section footer">
-<button class="small-btn" onclick="resetAll()">
-Reset Tournament
-</button>
-</div>
-
+<h2>🏆 Knockout Stage</h2>
+<div id="ko"></div>
 </div>
 
 <script type="module">
@@ -161,12 +141,11 @@ let state = {
 };
 
 const table=document.getElementById("table");
-const history=document.getElementById("history");
-
+const ko=document.getElementById("ko");
 const p1=document.getElementById("p1");
 const p2=document.getElementById("p2");
 
-function initPlayers(){
+function resetStats(){
     state.players.forEach(p=>{
         p.G=0;
         p.F=0;
@@ -177,7 +156,7 @@ function initPlayers(){
 
 function recalc(){
 
-    initPlayers();
+    resetStats();
 
     state.matches.forEach(m=>{
 
@@ -186,32 +165,26 @@ function recalc(){
 
         A.G++; B.G++;
 
-        A.F+=m.sa;
-        A.A+=m.sb;
-
-        B.F+=m.sb;
-        B.A+=m.sa;
+        A.F+=m.sa; A.A+=m.sb;
+        B.F+=m.sb; B.A+=m.sa;
 
         if(m.sa>m.sb) A.P++;
         else if(m.sb>m.sa) B.P++;
     });
 
     state.players.sort((a,b)=>
-        (b.P - a.P) ||
-        ((b.F-b.A)-(a.F-a.A))
+        (b.P-a.P)||((b.F-b.A)-(a.F-a.A))
     );
 
-    render();
-    renderHistory();
+    renderTable();
+    renderKO();
 }
 
-function render(){
+function renderTable(){
 
     table.innerHTML="";
 
     state.players.forEach((p,i)=>{
-
-        let sd = (p.F - p.A);
 
         table.innerHTML+=`
         <tr>
@@ -220,23 +193,27 @@ function render(){
         <td>${p.G}</td>
         <td>${p.F}</td>
         <td>${p.A}</td>
-        <td>${sd}</td>
+        <td>${p.F-p.A}</td>
         <td>${p.P}</td>
         </tr>`;
     });
 }
 
-function renderHistory(){
+function renderKO(){
 
-    history.innerHTML="";
+    if(state.players.length<4) return;
 
-    state.matches.forEach(m=>{
+    let top=[...state.players];
 
-        history.innerHTML+=`
-        <p>
-        ${m.a} ${m.sa} - ${m.sb} ${m.b}
-        </p>`;
-    });
+    top.sort((a,b)=>
+        (b.P-a.P)||((b.F-b.A)-(a.F-a.A))
+    );
+
+    // ✅ FIXED KO RULES
+    ko.innerHTML=`
+    <p><strong>KO1:</strong> ${top[0].name} vs ${top[2].name}</p>
+    <p><strong>KO2:</strong> ${top[1].name} vs ${top[3].name}</p>
+    `;
 }
 
 function updateDropdowns(){
@@ -252,14 +229,12 @@ function updateDropdowns(){
 
 window.addMatch=function(){
 
-    let match={
+    state.matches.push({
         a:p1.value,
         b:p2.value,
         sa:+s1.value,
         sb:+s2.value
-    };
-
-    state.matches.push(match);
+    });
 
     recalc();
     save();
@@ -279,27 +254,12 @@ onValue(ref(db,"tournament"),snap=>{
     recalc();
 });
 
-window.resetAll=function(){
-
-    if(!confirm("Are you sure you want to reset everything?")) return;
-
-    state.matches=[];
-
-    state.players=[
-        {name:"AZ"},
-        {name:"Rolo"},
-        {name:"DB"},
-        {name:"TK"}
-    ];
-
-    save();
-    recalc();
-}
-
 updateDropdowns();
 recalc();
 
 </script>
+
+</div>
 
 </body>
 </html>
