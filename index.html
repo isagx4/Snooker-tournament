@@ -149,6 +149,30 @@ const ko=document.getElementById("ko");
 const p1=document.getElementById("p1");
 const p2=document.getElementById("p2");
 
+let history=document.getElementById("history");
+
+if(!history){
+    const section=document.createElement("div");
+    section.className="section";
+
+    section.innerHTML=`
+    <h2>📋 Match History</h2>
+    <div id="history"></div>
+
+    <button onclick="clearMatches()">
+    Clear Matches
+    </button>
+
+    <button onclick="resetTournament()" style="background:#c62828;">
+    Reset Tournament
+    </button>
+    `;
+
+    document.querySelector(".container").appendChild(section);
+
+    history=document.getElementById("history");
+}
+
 function resetStats(){
     state.players.forEach(p=>{
         p.G=0;
@@ -167,21 +191,32 @@ function recalc(){
         let A=state.players.find(p=>p.name===m.a);
         let B=state.players.find(p=>p.name===m.b);
 
-        A.G++; B.G++;
+        if(!A || !B) return;
 
-        A.F+=m.sa; A.A+=m.sb;
-        B.F+=m.sb; B.A+=m.sa;
+        A.G++;
+        B.G++;
 
-        if(m.sa>m.sb) A.P++;
-        else if(m.sb>m.sa) B.P++;
+        A.F+=m.sa;
+        A.A+=m.sb;
+
+        B.F+=m.sb;
+        B.A+=m.sa;
+
+        if(m.sa>m.sb){
+            A.P++;
+        }else if(m.sb>m.sa){
+            B.P++;
+        }
     });
 
     state.players.sort((a,b)=>
-        (b.P-a.P)||((b.F-b.A)-(a.F-a.A))
+        (b.P-a.P) ||
+        ((b.F-b.A)-(a.F-a.A))
     );
 
     renderTable();
     renderKO();
+    renderHistory();
 }
 
 function renderTable(){
@@ -199,7 +234,8 @@ function renderTable(){
         <td>${p.A}</td>
         <td>${p.F-p.A}</td>
         <td>${p.P}</td>
-        </tr>`;
+        </tr>
+        `;
     });
 }
 
@@ -210,14 +246,33 @@ function renderKO(){
     let top=[...state.players];
 
     top.sort((a,b)=>
-        (b.P-a.P)||((b.F-b.A)-(a.F-a.A))
+        (b.P-a.P) ||
+        ((b.F-b.A)-(a.F-a.A))
     );
 
-    // ✅ FIXED KO RULES
     ko.innerHTML=`
     <p><strong>KO1:</strong> ${top[0].name} vs ${top[2].name}</p>
     <p><strong>KO2:</strong> ${top[1].name} vs ${top[3].name}</p>
     `;
+}
+
+function renderHistory(){
+
+    history.innerHTML="";
+
+    if(state.matches.length===0){
+        history.innerHTML="<p>No matches played yet.</p>";
+        return;
+    }
+
+    state.matches.forEach((m,index)=>{
+
+        history.innerHTML+=`
+        <p>
+        ${index+1}. ${m.a} ${m.sa} - ${m.sb} ${m.b}
+        </p>
+        `;
+    });
 }
 
 function updateDropdowns(){
@@ -226,12 +281,23 @@ function updateDropdowns(){
     p2.innerHTML="";
 
     state.players.forEach(p=>{
-        p1.innerHTML+=`<option>${p.name}</option>`;
-        p2.innerHTML+=`<option>${p.name}</option>`;
+
+        p1.innerHTML+=`
+        <option>${p.name}</option>
+        `;
+
+        p2.innerHTML+=`
+        <option>${p.name}</option>
+        `;
     });
 }
 
 window.addMatch=function(){
+
+    if(p1.value===p2.value){
+        alert("Players must be different");
+        return;
+    }
 
     state.matches.push({
         a:p1.value,
@@ -240,6 +306,38 @@ window.addMatch=function(){
         sb:+s2.value
     });
 
+    s1.value="";
+    s2.value="";
+
+    recalc();
+    save();
+}
+
+window.clearMatches=function(){
+
+    if(!confirm("Clear all matches?")) return;
+
+    state.matches=[];
+
+    recalc();
+    save();
+}
+
+window.resetTournament=function(){
+
+    if(!confirm("Reset entire tournament?")) return;
+
+    state={
+        players:[
+            {name:"AZ"},
+            {name:"Rolo"},
+            {name:"DB"},
+            {name:"TK"}
+        ],
+        matches:[]
+    };
+
+    updateDropdowns();
     recalc();
     save();
 }
