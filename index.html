@@ -136,7 +136,7 @@ const db = getDatabase(app);
 
 let state = {
     players:[
-        {name:"AZ"},
+        {name:"A_Zina"},
         {name:"Rolo"},
         {name:"DB"},
         {name:"TK"}
@@ -251,8 +251,8 @@ function renderKO(){
     );
 
     ko.innerHTML=`
-    <p><strong>KO1:</strong> ${top[0].name} vs ${top[2].name}</p>
-    <p><strong>KO2:</strong> ${top[1].name} vs ${top[3].name}</p>
+    <p><strong>KO1:</strong> ${top[0].name} vs ${top[3].name}</p>
+    <p><strong>KO2:</strong> ${top[1].name} vs ${top[2].name}</p>
     `;
 }
 
